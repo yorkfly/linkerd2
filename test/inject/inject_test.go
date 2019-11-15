@@ -238,8 +238,7 @@ func TestInjectAutoAnnotationPermutations(t *testing.T) {
 			shouldBeInjected := false
 			switch nsAnnotation {
 			case "", k8s.ProxyInjectDisabled:
-				switch podAnnotation {
-				case k8s.ProxyInjectEnabled:
+				if podAnnotation == k8s.ProxyInjectEnabled {
 					shouldBeInjected = true
 				}
 			case k8s.ProxyInjectEnabled:

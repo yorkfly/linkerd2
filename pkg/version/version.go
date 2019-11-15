@@ -41,11 +41,12 @@ func init() {
 // match compares two versions and returns success if they match, or an error
 // with a contextual message if they do not.
 func match(expectedVersion, actualVersion string) error {
-	if expectedVersion == "" {
+	switch {
+	case expectedVersion == "":
 		return errors.New("expected version is empty")
-	} else if actualVersion == "" {
+	case actualVersion == "":
 		return errors.New("actual version is empty")
-	} else if actualVersion == expectedVersion {
+	case actualVersion == expectedVersion:
 		return nil
 	}
 

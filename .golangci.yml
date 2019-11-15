@@ -1,12 +1,14 @@
 # This file specifies which linters golangci-lint should run.
 #
 # For descriptions of all available linters, run:
-# ./.golangci-lint-1.17.1 linters
+# ./target/bin/.golangci-lint-1.21.0 linters
 # or browse to:
 # https://github.com/golangci/golangci-lint#supported-linters
 
 run:
   deadline: 5m
+  skip-dirs:
+  - controller/gen
 issues:
   exclude-use-default: false
 linters:
@@ -15,6 +17,7 @@ linters:
   - deadcode
   - depguard
   - goconst
+  - gocritic
   - golint
   - gosimple
   - govet
@@ -27,11 +30,19 @@ linters:
   - unparam
   - unused
   - varcheck
+  - whitespace
+  - wsl
   # TODO: enable more linters!
+  # - dogsled
   # - dupl
+  # - funlen
   # - gochecknoglobals
   # - gochecknoinits
+  # - gocognit
   # - gocyclo
+  # - godox
+  # - gofmt
+  # - goimports
   # - gosec
   # - interfacer
   # - lll

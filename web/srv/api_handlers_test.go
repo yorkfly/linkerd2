@@ -73,28 +73,28 @@ func (c *mockHealthChecker) RunChecks(observer healthcheck.CheckObserver) bool {
 func TestHandleApiCheck(t *testing.T) {
 	// Setup handler using a mock health checker
 	mockResults := []*healthcheck.CheckResult{
-		&healthcheck.CheckResult{
+		{
 			Category:    healthcheck.LinkerdConfigChecks,
 			Description: "check3-description",
 			HintAnchor:  "check3-hint-anchor",
 			Warning:     false,
 			Err:         nil,
 		},
-		&healthcheck.CheckResult{
+		{
 			Category:    healthcheck.LinkerdConfigChecks,
 			Description: "check4-description-kubectl",
 			HintAnchor:  "check4-hint-anchor",
 			Warning:     true,
 			Err:         nil,
 		},
-		&healthcheck.CheckResult{
+		{
 			Category:    healthcheck.KubernetesAPIChecks,
 			Description: "check1-description",
 			HintAnchor:  "check1-hint-anchor",
 			Warning:     false,
 			Err:         nil,
 		},
-		&healthcheck.CheckResult{
+		{
 			Category:    healthcheck.KubernetesAPIChecks,
 			Description: "check2-description",
 			HintAnchor:  "check2-hint-anchor",

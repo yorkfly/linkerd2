@@ -85,11 +85,12 @@ func main() {
 }
 
 func configureLogging(logLevel string) {
-	if strings.EqualFold(logLevel, "debug") {
+	switch {
+	case strings.EqualFold(logLevel, "debug"):
 		logrus.SetLevel(logrus.DebugLevel)
-	} else if strings.EqualFold(logLevel, "info") {
+	case strings.EqualFold(logLevel, "info"):
 		logrus.SetLevel(logrus.InfoLevel)
-	} else {
+	default:
 		// Default level
 		logrus.SetLevel(logrus.WarnLevel)
 	}
