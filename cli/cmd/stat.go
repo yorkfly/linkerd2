@@ -14,6 +14,7 @@ import (
 	"github.com/linkerd/linkerd2/controller/api/util"
 	pb "github.com/linkerd/linkerd2/controller/gen/public"
 	"github.com/linkerd/linkerd2/pkg/k8s"
+	"github.com/linkerd/linkerd2/pkg/stat"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,7 @@ type statOptions struct {
 	fromNamespace string
 	fromResource  string
 	allNamespaces bool
+	smi           bool
 }
 
 type indexedResults struct {
@@ -41,6 +43,7 @@ func newStatOptions() *statOptions {
 		fromNamespace:   "",
 		fromResource:    "",
 		allNamespaces:   false,
+		smi:             false,
 	}
 }
 
@@ -142,6 +145,22 @@ If no resource name is specified, displays stats about all resources of the spec
 				return fmt.Errorf("error creating metrics request while making stats request: %v", err)
 			}
 
+			if options.smi {
+				totalRows := []*pb.StatTable_PodGroup_Row{}
+				for _, req := range reqs {
+					resp, err := statsFromSMIAPI(req)
+					if err != nil {
+						return fmt.Errorf("can't retrieve stats from smi-metrics endpoint: %s", err)
+					}
+
+					totalRows = append(totalRows, respToRows(resp)...)
+				}
+
+				output := renderStatStats(totalRows, options)
+				_, err = fmt.Print(output)
+				return err
+			}
+
 			// The gRPC client is concurrency-safe, so we can reuse it in all the following goroutines
 			// https://github.com/grpc/grpc-go/issues/682
 			client := checkPublicAPIClientOrExit()
@@ -181,6 +200,7 @@ If no resource name is specified, displays stats about all resources of the spec
 	cmd.PersistentFlags().StringVar(&options.fromNamespace, "from-namespace", options.fromNamespace, "Sets the namespace used from lookup the \"--from\" resource; by default the current \"--namespace\" is used")
 	cmd.PersistentFlags().BoolVarP(&options.allNamespaces, "all-namespaces", "A", options.allNamespaces, "If present, returns stats across all namespaces, ignoring the \"--namespace\" flag")
 	cmd.PersistentFlags().StringVarP(&options.outputFormat, "output", "o", options.outputFormat, "Output format; one of: \"table\" or \"json\" or \"wide\"")
+	cmd.PersistentFlags().BoolVarP(&options.smi, "smi", "", options.smi, "Set to true to use the smi-metrics API")
 
 	return cmd
 }
@@ -751,4 +771,23 @@ func getByteRate(bytes uint64, timeWindow string) float64 {
 		return 0.0
 	}
 	return float64(bytes) / windowLength.Seconds()
+}
+
+func statsFromSMIAPI(req *pb.StatSummaryRequest) (*pb.StatSummaryResponse, error) {
+	k8sAPI, err := k8s.NewAPI(kubeconfigPath, kubeContext, impersonate, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	resp, err := stat.FetchStatSummary(ctx, k8sAPI, req, controlPlaneNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.GetError(); err != nil {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	return resp, nil
 }
